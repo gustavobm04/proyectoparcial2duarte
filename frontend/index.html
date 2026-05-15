@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autenticación Completa</title>
+
+    <style>
+
+        body {
+            font-family: Arial;
+            margin: 40px;
+        }
+
+        input {
+            display: block;
+            margin-bottom: 10px;
+            padding: 8px;
+            width: 300px;
+        }
+
+        button {
+            padding: 10px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+
+        #userInfo {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid gray;
+            width: 400px;
+        }
+
+    </style>
+
+</head>
+<body>
+
+    <h1>Proyecto Parcial 2</h1>
+
+    <h2>Crear Usuario</h2>
+
+    <input type="text" id="full_name" placeholder="Nombre completo">
+
+    <input type="text" id="register_username" placeholder="Nombre de usuario">
+
+    <input type="password" id="register_password" placeholder="Contraseña">
+
+    <button onclick="registerUser()">
+        Crear Usuario
+    </button>
+
+
+    <h2>Login</h2>
+
+    <input type="text" id="login_username" placeholder="Nombre de usuario">
+
+    <input type="password" id="login_password" placeholder="Contraseña">
+
+    <button onclick="loginUser()">
+        Entrar
+    </button>
+
+
+    <h2>Información del Usuario</h2>
+
+    <button onclick="getUserInfo()">
+        Mostrar información
+    </button>
+
+    <div id="userInfo"></div>
+
+
+    <script>
+
+        const API_URL = "http://127.0.0.1:8000";
+
+
+        async function registerUser() {
+
+            const full_name = document.getElementById(
+                "full_name"
+            ).value;
+
+            const username = document.getElementById(
+                "register_username"
+            ).value;
+
+            const password = document.getElementById(
+                "register_password"
+            ).value;
+
+
+            try {
+
+                const response = await fetch(
+                    `${API_URL}/register`,
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            full_name,
+                            username,
+                            password
+                        })
+                    }
+                );
+
+                if (response.ok) {
+
+                    alert("Usuario creado");
+
+                    document.getElementById(
+                        "full_name"
+                    ).value = "";
+
+                    document.getElementById(
+                        "register_username"
+                    ).value = "";
+
+                    document.getElementById(
+                        "register_password"
+                    ).value = "";
+
+                } else {
+
+                    alert(
+                        "Error al crear usuario"
+                    );
+
+                }
+
+            } catch (error) {
+
+                alert("Error de conexión");
+
+            }
+
+        }
+
+
+
+        async function loginUser() {
+
+            const username = document.getElementById(
+                "login_username"
+            ).value;
+
+            const password = document.getElementById(
+                "login_password"
+            ).value;
+
+
+            const formData = new URLSearchParams();
+
+            formData.append(
+                "username",
+                username
+            );
+
+            formData.append(
+                "password",
+                password
+            );
+
+
+            try {
+
+                const response = await fetch(
+                    `${API_URL}/login`,
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                            "application/x-www-form-urlencoded"
+                        },
+
+                        body: formData,
+
+                        credentials: "include"
+                    }
+                );
+
+                const data = await response.json();
+
+                if (response.ok) {
+
+                    alert(
+                        "Usuario autenticado\n\nToken:\n" +
+                        data.access_token
+                    );
+
+                } else {
+
+                    alert(
+                        "Credenciales incorrectas"
+                    );
+
+                }
+
+            } catch (error) {
+
+                alert("Error de conexión");
+
+            }
+
+        }
+
+
+
+        async function getUserInfo() {
+
+            try {
+
+                const response = await fetch(
+                    `${API_URL}/users/me`,
+                    {
+                        method: "GET",
+                        credentials: "include"
+                    }
+                );
+
+                const data = await response.json();
+
+                if (response.ok) {
+
+                    document.getElementById(
+                        "userInfo"
+                    ).innerHTML = `
+
+                        <h3>Usuario</h3>
+
+                        <p>
+                            <strong>Nombre:</strong>
+                            ${data.full_name}
+                        </p>
+
+                        <p>
+                            <strong>Username:</strong>
+                            ${data.username}
+                        </p>
+
+                        <p>
+                            <strong>Password Hasheada:</strong>
+                            ${data.hashed_password}
+                        </p>
+
+                    `;
+
+                } else {
+
+                    alert(
+                        "No autenticado"
+                    );
+
+                }
+
+            } catch (error) {
+
+                alert("Error de conexión");
+
+            }
+
+        }
+
+    </script>
+
+</body>
+</html>
